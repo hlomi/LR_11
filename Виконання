@@ -1,0 +1,65 @@
+import csv
+import os
+import platform
+
+# Функція для очищення екрану залежно від операційної системи (була додано по причині неможливості виконання по прикладу з MIXу)
+def clear_screen():
+    if platform.system() == "Windows":
+        os.system('cls')
+    else:
+        os.system('clear')
+
+try:
+    # Відкриваємо файл з даними (Lab11.csv) (так файл називається в папці з кодом)
+    with open("Lab11.csv", "r") as csvfile:
+        reader = csv.DictReader(csvfile, delimiter=",")
+        
+        # Виводимо дані для США за 2000-2019 роки (змінений діапазон по причині неможливості знайти відповідного файлу в інтернеті)
+        print("Дані населення для США за 2000-2019 роки:")
+        for row in reader:
+            if row['Country Name'] == 'United States':
+                print(row['Country Name'], ': ', end='')
+                for year in range(2000, 2020):
+                    print(f"{year}: {row.get(f'{year} [YR{year}]')}", end=', ')
+                print()  # Для переходу на новий рядок після даних по США
+
+except FileNotFoundError:
+    print("Файл Lab11.csv не знайдено! (пункт 1)")
+
+try:
+    # Повторне відкриття файлу для пошуку значень
+    with open("Lab11.csv", "r") as csvfile:
+        reader = csv.DictReader(csvfile, delimiter=",")
+        indicator = input("\nВведіть значення, щоб знайти показники, більші за нього: ")
+        
+        while not indicator.isdigit():
+            indicator = input("Введіть значення ще раз, оскільки має бути числове значення: ")
+
+        clear_screen()
+        print("Пошук показників, більших за введене значення...")
+
+        # Створення та запис результатів у новий файл (додаковий файл в папку комп'ютера)
+        with open("new_Lab11.csv", "w", newline="") as csvfile2:
+            writer = csv.writer(csvfile2)
+            writer.writerow(["Country Name", "Year", "Value"])
+
+            flag = False
+            for row in reader:
+                # Перевіряємо лише рядок для "United States" (по уммові завдання)
+                if row["Country Name"] == "United States":
+                    for year in range(2000, 2020):
+                        value = row.get(f"{year} [YR{year}]")
+                        
+                        # Перевірка, чи значення є числом і чи більше воно за введене значення
+                        if value and value.replace('.', '', 1).isdigit() and float(value) > float(indicator):
+                            flag = True
+                            print(row["Country Name"], year, ": ", value)
+                            writer.writerow([row["Country Name"], year, value])
+
+            if not flag:
+                print(f"Показників, більших за значення {indicator}, не знайдено.")
+                
+except FileNotFoundError:
+    print("Не вдалося відкрити файл Lab11.csv (пункт 2)")
+except Exception as e:
+    print("Виникла помилка:", e)
